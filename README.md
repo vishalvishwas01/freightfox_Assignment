@@ -64,15 +64,14 @@ Returns the chosen carrier and quote for every lane, total quoted cost, and per-
 
 ### Backend (Render or Railway)
 
-- Create a PostgreSQL database and a Java service rooted at `backend/`.
-- Build command: `mvn clean package -DskipTests`; start command: `java -jar target/lane-optimizer-1.0.0.jar`.
-- Set `DATABASE_URL` to `jdbc:postgresql://HOST:PORT/DB`, `DB_USERNAME`, `DB_PASSWORD`, `APP_CORS_ORIGIN` to the deployed frontend origin, and `PORT` if required by the host.
-- Flyway creates the schema on startup. Keep `spring.jpa.hibernate.ddl-auto=validate` enabled.
+- `render.yaml` provisions a free Render web service and Postgres database. In Render, choose **New → Blueprint**, connect the GitHub repository, and confirm the two free resources. For the initial deploy, set the prompted `APP_CORS_ORIGIN` to `https://*.vercel.app`; after the Vercel deployment is live, narrow it to your exact production origin (e.g. `https://your-project.vercel.app`).
+- The backend Dockerfile compiles with Java 21 and starts the Spring Boot API. Render injects the database connection settings; Flyway creates the schema on startup. Keep `spring.jpa.hibernate.ddl-auto=validate` enabled.
+- Render free web services spin down after 15 minutes idle, so the first request may take about a minute. Free Postgres databases expire after 30 days; this is suitable for assessment/demo use, not durable production storage.
 
 ### Frontend (Vercel)
 
-- Import this repository and set the Vercel **Root Directory** to `frontend` (Next.js auto-detection).
-- Add `NEXT_PUBLIC_API_URL` with the deployed backend base URL, for example `https://your-api.example.com`.
+- Import this repository and set the Vercel **Root Directory** to `frontend` (Next.js auto-detection). Leave the framework preset as Next.js.
+- Add `NEXT_PUBLIC_API_URL` with the deployed backend base URL, for example `https://freightfox-api.onrender.com` (no trailing slash). Apply it to Production, Preview, and Development as needed; this value is embedded at build time, so redeploy after changing it.
 - Deploy. Configure the backend `APP_CORS_ORIGIN` to this exact Vercel origin (including the production domain).
 
 The assessment brief explicitly asks for REST APIs without a UI. The dashboard is an additional demo convenience; the Java endpoints remain independently testable with Postman and Swagger.

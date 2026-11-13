@@ -1,0 +1,33 @@
+databases:
+  - name: freightfox-db
+    databaseName: freightfox
+    user: freightfox
+    plan: free
+    region: singapore
+
+services:
+  - type: web
+    name: freightfox-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: DATABASE_URL
+        fromDatabase:
+          name: freightfox-db
+          property: connectionString
+      - key: DB_USERNAME
+        fromDatabase:
+          name: freightfox-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: freightfox-db
+          property: password
+      - key: APP_CORS_ORIGIN
+        sync: false

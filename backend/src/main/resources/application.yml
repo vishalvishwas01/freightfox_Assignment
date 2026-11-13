@@ -1,0 +1,20 @@
+server:
+  port: ${PORT:8080}
+spring:
+  application:
+    name: freightfox-lane-optimizer
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/freightfox}
+    username: ${DB_USERNAME:freightfox}
+    password: ${DB_PASSWORD:freightfox}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+  jackson:
+    default-property-inclusion: non_null
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

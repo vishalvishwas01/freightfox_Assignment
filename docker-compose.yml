@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: freightfox
+      POSTGRES_USER: freightfox
+      POSTGRES_PASSWORD: freightfox
+    ports:
+      - "5432:5432"
+    volumes:
+      - freightfox-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U freightfox -d freightfox"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  freightfox-postgres:

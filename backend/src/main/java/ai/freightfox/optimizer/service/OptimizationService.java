@@ -33,7 +33,9 @@ public class OptimizationService {
             }
         }
         UUID id=UUID.randomUUID();
-        jdbc.update("INSERT INTO optimization_run(id,max_transporters,total_cost,selected_transporters,created_at) VALUES (?,1,0,0,?)",id,Instant.now());
+        // Let PostgreSQL populate created_at via its DEFAULT now(); passing Instant
+        // through JdbcTemplate.setObject is not supported by the PostgreSQL driver.
+        jdbc.update("INSERT INTO optimization_run(id,max_transporters,total_cost,selected_transporters) VALUES (?,1,0,0)",id);
         for(var lane:request.lanes()) jdbc.update("INSERT INTO lane(run_id,external_id,origin,destination) VALUES (?,?,?,?)",id,lane.id(),lane.origin(),lane.destination());
         for(var carrier:request.transporters()) {
             jdbc.update("INSERT INTO transporter(run_id,external_id,name) VALUES (?,?,?)",id,carrier.id(),carrier.name());

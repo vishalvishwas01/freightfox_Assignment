@@ -8,9 +8,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.Instant;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
     @ExceptionHandler(IllegalArgumentException.class)
     ResponseEntity<ApiModels.ErrorResponse> invalid(IllegalArgumentException e){return ResponseEntity.badRequest().body(new ApiModels.ErrorResponse("BAD_REQUEST",e.getMessage(),Instant.now()));}
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -18,5 +21,5 @@ public class ApiExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     ResponseEntity<ApiModels.ErrorResponse> unreadable(HttpMessageNotReadableException e){return ResponseEntity.badRequest().body(new ApiModels.ErrorResponse("INVALID_JSON","Request body is missing or is not valid JSON",Instant.now()));}
     @ExceptionHandler(Exception.class)
-    ResponseEntity<ApiModels.ErrorResponse> unexpected(Exception e){return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiModels.ErrorResponse("INTERNAL_ERROR","An unexpected error occurred",Instant.now()));}
+    ResponseEntity<ApiModels.ErrorResponse> unexpected(Exception e){log.error("Unhandled API exception",e);return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiModels.ErrorResponse("INTERNAL_ERROR","An unexpected error occurred",Instant.now()));}
 }

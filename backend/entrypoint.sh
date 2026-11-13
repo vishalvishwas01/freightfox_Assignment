@@ -9,8 +9,16 @@ if [ -n "${DATABASE_URL:-}" ]; then
   host_and_port="${authority_and_path%%/*}"
   database_name="${authority_and_path#*/}"
   database_name="${database_name%%\?*}"
-  db_host="${host_and_port%%:*}"
-  db_port="${host_and_port#*:}"
+  case "$host_and_port" in
+    *:*)
+      db_host="${host_and_port%%:*}"
+      db_port="${host_and_port#*:}"
+      ;;
+    *)
+      db_host="$host_and_port"
+      db_port="${DB_PORT:-5432}"
+      ;;
+  esac
   export SPRING_DATASOURCE_URL="jdbc:postgresql://${db_host}:${db_port}/${database_name}"
 fi
 

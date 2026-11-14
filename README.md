@@ -1,5 +1,9 @@
 # FreightFox Lane Optimizer
 
+- **Live dashboard:** https://frontend-gray-tau-don1caoag6.vercel.app/
+- **Backend API:** https://freightfox-api.onrender.com/
+- **Swagger UI:** https://freightfox-api.onrender.com/swagger-ui.html
+
 A freight-procurement demo for assigning transporters to trade lanes using the lowest available quotes while covering every lane. The backend is the required Java/Spring Boot REST API; the Next.js dashboard is an optional presentation layer for the requested Vercel demo.
 
 ## Optimization rule
@@ -27,32 +31,53 @@ Run backend tests with `cd backend && mvn test`. Build the frontend with `cd fro
 
 ## API
 
-### Submit lanes and quotes
+### Test all three endpoints in Swagger
 
-`POST /api/v1/transporters/input` (201)
+Open the [live Swagger UI](https://freightfox-api.onrender.com/swagger-ui.html) (or `http://localhost:8080/swagger-ui.html` locally). The free Render service can take a minute to wake up. For each endpoint, expand it, click **Try it out**, enter the request body where needed, and click **Execute**. Run these steps in order; the API uses the most recently submitted input rather than a run ID supplied in the request. Submitting this sample creates a new run in the shared deployed database.
+
+#### 1. Submit lanes and quotes
+
+`POST /api/v1/transporters/input`
 
 ```json
 {
-  "lanes": [{"id":"Lane 1","origin":"Mumbai","destination":"Delhi"}],
-  "transporters": [{"id":"T1","name":"Transporter T1","laneQuotes":[{"laneId":"Lane 1","quote":20835}]}]
+  "lanes": [
+    {"id":"L1","origin":"Mumbai","destination":"Delhi"},
+    {"id":"L2","origin":"Delhi","destination":"Pune"}
+  ],
+  "transporters": [
+    {"id":"T1","name":"Transporter T1","laneQuotes":[
+      {"laneId":"L1","quote":10},{"laneId":"L2","quote":100}
+    ]},
+    {"id":"T2","name":"Transporter T2","laneQuotes":[
+      {"laneId":"L1","quote":12},{"laneId":"L2","quote":11}
+    ]},
+    {"id":"T3","name":"Transporter T3","laneQuotes":[
+      {"laneId":"L1","quote":8},{"laneId":"L2","quote":30}
+    ]}
+  ]
 }
 ```
 
-Input is validated for duplicate IDs, unknown lane references, duplicate quotes from a carrier for the same lane, negative costs, and missing required fields. Each submission is stored as a separate optimization run.
+Expected: **201 Created**, `status: "success"`, and a `runId` (with 2 lanes and 3 transporters). Input is validated for duplicate IDs, unknown lane references, duplicate quotes from a carrier for the same lane, negative costs, and missing required fields. Each submission is stored as a separate optimization run.
 
-### Optimize assignments
+#### 2. Optimize assignments
 
-`POST /api/v1/transporters/assignment`
+`POST /api/v1/transporters/assignment` — enter a maximum number of carriers:
 
 ```json
-{"maxTransporters": 3}
+{"maxTransporters": 2}
 ```
 
-Returns the chosen carrier and quote for every lane, total quoted cost, and per-carrier summary. An exact DP search compares carrier sets and assignment decisions; it is not a greedy per-lane cheapest-quote selection.
+Expected: **200 OK**, total cost **19**, and two assignments: `L1 → T3` for 8 and `L2 → T2` for 11. `maxTransporters` is an upper bound; the optimizer minimizes the sum of quotes while covering each lane exactly once. The response includes assignments and per-carrier totals.
 
-### Read latest result
+#### 3. Read latest result
 
-`GET /api/v1/transporters/assignment/latest`
+`GET /api/v1/transporters/assignment/latest` — no request body.
+
+Expected: **200 OK** with the same run ID and assignment (cost 19) saved in step 2. Re-run steps 1–3 in order whenever testing with a new dataset.
+
+The optimizer uses an exact dynamic-programming search across carrier sets; it is not a greedy per-lane cheapest-quote selection.
 
 ### Error format
 
